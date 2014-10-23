@@ -29,6 +29,7 @@ class ObeliskOfLightClient(ClientBase):
         'subscribe',
         'fetch_last_height',
         'fetch_transaction',
+        'fetch_pool_transaction',
         'fetch_spend',
         'fetch_transaction_index',
         'fetch_block_transaction_hashes',
@@ -122,6 +123,11 @@ class ObeliskOfLightClient(ClientBase):
         data = serialize.ser_hash(tx_hash)
         self.send_command('blockchain.fetch_transaction', data, cb)
 
+    def fetch_pool_transaction(self, tx_hash, cb):
+        """Fetches an unconfirmed transaction by hash."""
+        data = serialize.ser_hash(tx_hash)
+        self.send_command('transaction_pool.fetch_transaction', data, cb)
+
     def fetch_spend(self, outpoint, cb):
         """Fetches a corresponding spend of an output."""
         data = outpoint.serialize()
@@ -194,6 +200,11 @@ class ObeliskOfLightClient(ClientBase):
         return (error, height)
 
     def _on_fetch_transaction(self, data):
+        error = unpack_error(data)
+        tx = data[4:]
+        return (error, tx)
+
+    def _on_fetch_pool_transaction(self, data):
         error = unpack_error(data)
         tx = data[4:]
         return (error, tx)
